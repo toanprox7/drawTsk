@@ -1,0 +1,307 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <style>
+      * {
+        padding: 0;
+        margin: 0;
+        list-style: none;
+        text-decoration: none;
+        font-family: sans-serif;
+      }
+      body {
+        background-color: lightgrey;
+      }
+      span {
+        font-size: 20px;
+        font-weight: 500;
+      }
+      .formClass form {
+        left: 0;
+        position: fixed;
+        width: 230px;
+        height: 100%;
+        background: white;
+        padding: 5px 10px;
+        border-radius: 15px;
+      }
+      form .ddainput {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: space-between;
+      }
+      form .ddainput .input-box {
+        margin: 5px 0 5px 0;
+        width: calc(100% / 2 - 5px);
+      }
+      .ddainput .input-box input {
+        width: 100%;
+        height: 20px;
+        outline: none;
+        border-radius: 5px;
+        border: 2px solid pink;
+      }
+      form .btn {
+        max-width: 100%;
+        display: block;
+      }
+      form .btn input {
+        width: 100%;
+        background-color: pink;
+        border-radius: 5px;
+        border: none;
+        padding: 3px;
+        margin: 5px 0 5px 0;
+      }
+      form .ddainput .input-box-radius {
+        margin: 5px 0 5px 0;
+        width: 100%;
+      }
+      form .ddainput .input-box-radius input {
+        width: 100%;
+        height: 20px;
+        outline: none;
+        border-radius: 5px;
+        border: 2px solid pink;
+      }
+      form .ddainput .selectColor {
+        margin: 5px 0 5px 0;
+        width: 100%;
+      }
+      form .ddainput .selectColor .select {
+        width: 100%;
+        height: 24px;
+        border-radius: 5px;
+        border: 2px solid pink;
+      }
+      .select option {
+        background-color: pink;
+      }
+      canvas {
+        border: 1px solid white;
+        right: 0;
+        height: 1080px;
+        width: 1670px;
+        border-radius: 15px;
+        margin-left: 250px;
+        background-color: aliceblue;
+      }
+    </style>
+    <title>CanvasApp</title>
+  </head>
+
+  <body>
+    <div class="formClass">
+      <form name="form1">
+        <div class="btn">
+          <input type="button" value="Undo" onclick="undoData()" />
+        </div>
+        <!-- ddaAlgorithm -->
+        <span>Draw a line with BresenHam Algorithm </span>
+        <div class="ddainput">
+          <div class="input-box">
+            <input type="text" name="x1" placeholder="Enter x1" />
+          </div>
+          <div class="input-box">
+            <input type="text" name="y1" placeholder="Enter y1" />
+          </div>
+          <div class="input-box">
+            <input type="text" name="x2" placeholder="Enter x2" />
+          </div>
+          <div class="input-box">
+            <input type="text" name="y2" placeholder="Enter y2" />
+          </div>
+        </div>
+        <div class="btn">
+          <input type="button" value="Confirm" onclick="drawLineBresenham()" />
+        </div>
+        <div class="btn">
+          <input type="button" value="Reset" onclick="clearCanvas()" />
+        </div>
+        <!-- midPointAlgorithm -->
+        <span>Draw a line circle BresenHam Algorithm </span>
+        <div class="ddainput">
+          <div class="input-box">
+            <input type="text" name="xc" placeholder="Enter x" />
+          </div>
+          <div class="input-box">
+            <input type="text" name="yc" placeholder="Enter y" />
+          </div>
+          <div class="input-box-radius">
+            <input type="text" name="rc" placeholder="Enter radius" />
+          </div>
+        </div>
+        <div class="btn">
+          <input type="button" value="Confirm" onclick="bresenhamCircle()" />
+        </div>
+        <div class="btn">
+          <input type="button" value="Reset" onclick="clearCanvas()" />
+        </div>
+      </form>
+    </div>
+    <canvas id="myCanvas" width="1670" height="1080"></canvas>
+    <script>
+      var c = document.getElementById("myCanvas");
+      var ctx = c.getContext("2d");
+      var data = [];
+      function clearCanvas() {
+        ctx.clearRect(0, 0, 1670, 1080);
+      }
+      function bresenhamCircle() {
+        data.push({
+          xc: parseInt(document.form1.xc.value),
+          yc: parseInt(document.form1.yc.value),
+          rc: parseInt(document.form1.rc.value),
+        });
+        drawData();
+      }
+      function drawData() {
+        data.map((item, index) => {
+          if (item.rc && item.xc && item.yc) {
+            drawCircle(item.xc, item.yc, item.rc);
+          } else {
+            drawLine(item.x1, item.y1, item.x2,item.y2)
+          }
+        });
+      }
+      function undoData() {
+        clearCanvas();
+        data.splice(-1, 1);
+        // draw all the paths in the paths array
+        drawData();
+      }
+      var drawCircle = function (x, y, r) {
+        // d start from D(M) = r^2 - r^2 + r-1/4 = r- 1/4 , but we can ignore constant because r>1/4
+        var d = r;
+        var dx = -2 * r; //dx = -2x +2 , constant move to loop
+        var dy = 0; //dy = 2y + 1 , constant move to loop
+
+        var cx = r; //starting point:
+        var cy = 0;
+
+        init(x, y, r);
+
+        while (cx > cy) {
+          if (d > 0) {
+            cx--;
+            d += -2 * cx + 2;
+          }
+          cy++;
+          d += 2 * cy + 1;
+
+          mirrowing(x, y, cx, cy);
+        }
+      };
+      var init = function (x, y, r) {
+        dot(x, y + r);
+        dot(x, y - r);
+        dot(x + r, y);
+        dot(x - r, y);
+      };
+      var mirrowing = function (cx, cy, x, y) {
+        dot(cx + x, cy + y);
+        dot(cx - x, cy + y);
+        dot(cx + x, cy - y);
+        dot(cx - x, cy - y);
+        dot(cx + y, cy + x);
+        dot(cx - y, cy + x);
+        dot(cx + y, cy - x);
+        dot(cx - y, cy - x);
+      };
+
+      var dot = function (x, y) {
+        ctx.fillRect(x, y, 2, 2);
+      };
+      let drawLineBresenham = () => {
+        data.push({
+          x1: parseInt(document.form1.x1.value),
+          y1: parseInt(document.form1.y1.value),
+          x2: parseInt(document.form1.x2.value),
+          y2: parseInt(document.form1.y2.value)
+        });
+        drawData();
+      };
+      function drawLine(x1,y1,x2,y2) {
+          // Iterators, counters required by algorithm
+        let x, y, dx, dy, dx1, dy1, px, py, xe, ye, i;
+        // Calculate line deltas
+        dx = x2 - x1;
+        dy = y2 - y1;
+        // Create a positive copy of deltas (makes iterating easier)
+        dx1 = Math.abs(dx);
+        dy1 = Math.abs(dy);
+        // Calculate error intervals for both axis
+        px = 2 * dy1 - dx1;
+        py = 2 * dx1 - dy1;
+        // The line is X-axis dominant
+        if (dy1 <= dx1) {
+          // Line is drawn left to right
+          if (dx >= 0) {
+            x = x1;
+            y = y1;
+            xe = x2;
+          } else {
+            // Line is drawn right to left (swap ends)
+            x = x2;
+            y = y2;
+            xe = x1;
+          }
+          dot(x, y); // Draw first pixel
+          // Rasterize the line
+          for (i = 0; x < xe; i++) {
+            x = x + 1;
+            // Deal with octants...
+            if (px < 0) {
+              px = px + 2 * dy1;
+            } else {
+              if ((dx < 0 && dy < 0) || (dx > 0 && dy > 0)) {
+                y = y + 1;
+              } else {
+                y = y - 1;
+              }
+              px = px + 2 * (dy1 - dx1);
+            }
+            // Draw pixel from line span at
+            // currently rasterized position
+            dot(x, y);
+          }
+        } else {
+          // The line is Y-axis dominant
+          // Line is drawn bottom to top
+          if (dy >= 0) {
+            x = x1;
+            y = y1;
+            ye = y2;
+          } else {
+            // Line is drawn top to bottom
+            x = x2;
+            y = y2;
+            ye = y1;
+          }
+          dot(x, y); // Draw first pixel
+          // Rasterize the line
+          for (i = 0; y < ye; i++) {
+            y = y + 1;
+            // Deal with octants...
+            if (py <= 0) {
+              py = py + 2 * dx1;
+            } else {
+              if ((dx < 0 && dy < 0) || (dx > 0 && dy > 0)) {
+                x = x + 1;
+              } else {
+                x = x - 1;
+              }
+              py = py + 2 * (dx1 - dy1);
+            }
+            // Draw pixel from line span at
+            // currently rasterized position
+            dot(x, y);
+          }
+        }
+      }
+    </script>
+  </body>
+</html>
